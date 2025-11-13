@@ -29,17 +29,17 @@ def parse_args():
 
 def load_report(path: Path):
     if not path.exists():
-        print(f"[ERROR] 报告文件不存在: {path}")
+        print(f"[ERROR] Report file does not exist: {path}")
         sys.exit(2)
     try:
         with path.open('r', encoding='utf-8') as f:
             data = json.load(f)
         if not isinstance(data, list):
-            print('[ERROR] 报告 JSON 顶层不是数组')
+            print('[ERROR] Report JSON top level is not an array')
             sys.exit(3)
         return data
     except Exception as e:
-        print(f'[ERROR] 读取报告失败: {e}')
+        print(f'[ERROR] Failed to read report: {e}')
         sys.exit(4)
 
 
@@ -55,7 +55,7 @@ def write_outputs(failed: List[dict], prefix: str):
     csv_path = Path(prefix + '.csv')
     md_path = Path(prefix + '.md')
 
-    # 精简数据: 只保留 id,url,status_code,error,final_url
+    # Simplify data: only keep id, url, status_code, error, final_url
     slim = []
     for r in failed:
         slim.append({
@@ -83,7 +83,7 @@ def write_outputs(failed: List[dict], prefix: str):
             err_short = (r['error'] or '')[:100].replace('\n',' ')
             f.write(f"| {r['id']} | {r['status_code']} | {r['url']} | {err_short} |\n")
 
-    print('[OK] 失败报告已生成:')
+    print('[OK] Failure report generated:')
     print('  JSON:', json_path)
     print('  CSV :', csv_path)
     print('  MD  :', md_path)
@@ -93,8 +93,8 @@ def write_outputs(failed: List[dict], prefix: str):
 def delete_others(keep_files, base_dir: Path):
     patterns_remove = [
         'link_check_full.*', 'link_check_manual.*',
-        'index_table_links_report.*',  # 原始完整报告
-        # 旧的可能文件
+        'index_table_links_report.*',  # Original complete report
+        # Old possible files
     ]
     removed = []
     for pat in patterns_remove:
@@ -105,13 +105,13 @@ def delete_others(keep_files, base_dir: Path):
                 p.unlink()
                 removed.append(p.name)
             except Exception as e:
-                print(f'[WARN] 删除失败 {p}: {e}')
+                print(f'[WARN] Delete failed {p}: {e}')
     if removed:
-        print('[OK] 已删除其它报告文件:')
+        print('[OK] Deleted other report files:')
         for name in removed:
             print('  -', name)
     else:
-        print('[INFO] 没有发现可删除的其它报告文件')
+        print('[INFO] No other deletable report files found')
 
 
 def main():
@@ -119,9 +119,9 @@ def main():
     report_path = Path(args.report)
     rows = load_report(report_path)
     failed = filter_failed(rows)
-    print(f'原始记录: {len(rows)}  失败: {len(failed)}')
+    print(f'Original records: {len(rows)}  Failed: {len(failed)}')
     if not failed:
-        print('[INFO] 没有失败条目，不生成失败报告。')
+        print('[INFO] No failed entries, not generating failure report.')
         return 0
     json_path, csv_path, md_path = write_outputs(failed, args.output_prefix)
     if args.delete_others:

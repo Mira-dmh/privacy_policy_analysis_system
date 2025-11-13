@@ -51,14 +51,14 @@ class RowResult:
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="检测 index_table_from_excel.json 中的链接")
-    p.add_argument('--file', default='files/index_table_from_excel.json', help='JSON 文件路径')
-    p.add_argument('--concurrency', type=int, default=20, help='并发数')
-    p.add_argument('--timeout', type=float, default=12.0, help='超时秒')
-    p.add_argument('--retries', type=int, default=1, help='重试次数 (不含首次)')
-    p.add_argument('--limit', type=int, default=None, help='仅检测前 N 条')
-    p.add_argument('--output-prefix', default='reports/index_table_links_report', help='输出前缀')
-    p.add_argument('--http2', action='store_true', help='启用 HTTP/2')
+    p = argparse.ArgumentParser(description="Check links in index_table_from_excel.json")
+    p.add_argument('--file', default='files/index_table_from_excel.json', help='JSON file path')
+    p.add_argument('--concurrency', type=int, default=20, help='Concurrency count')
+    p.add_argument('--timeout', type=float, default=12.0, help='Timeout seconds')
+    p.add_argument('--retries', type=int, default=1, help='Retry count (excluding first attempt)')
+    p.add_argument('--limit', type=int, default=None, help='Only check first N entries')
+    p.add_argument('--output-prefix', default='reports/index_table_links_report', help='Output prefix')
+    p.add_argument('--http2', action='store_true', help='Enable HTTP/2')
     return p.parse_args()
 
 
@@ -96,7 +96,7 @@ async def fetch_one(client: httpx.AsyncClient, _id: int, url: str, timeout: floa
 
 async def run(url_rows: List[tuple[int, str]], concurrency: int, timeout: float, retries: int, http2: bool) -> List[RowResult]:
     limits = httpx.Limits(max_connections=concurrency, max_keepalive_connections=concurrency)
-    # 兼容 httpx 旧版本 http2 参数可能报错
+    # Compatible with httpx old version http2 parameter may error
     client = None
     try:
         client = httpx.AsyncClient(headers=DEFAULT_HEADERS, timeout=timeout, limits=limits, http2=http2)
@@ -137,7 +137,7 @@ def write_reports(results: List[RowResult], prefix: str):
         writer.writerow(["id", "url", "final_url", "status_code", "ok", "error", "elapsed_ms"])
         for r in results:
             writer.writerow([r.id, r.url, r.final_url, r.status_code, r.ok, r.error, f"{r.elapsed_ms:.1f}" if r.elapsed_ms else None])
-    print(f"已生成报告:\n  JSON: {json_path}\n  CSV : {csv_path}")
+    print(f"Report generated:\n  JSON: {json_path}\n  CSV : {csv_path}")
 
 
 def summary(results: List[RowResult]):
@@ -157,7 +157,7 @@ def main():
     args = parse_args()
     file_path = Path(args.file)
     if not file_path.exists():
-        print(f"文件不存在: {file_path}")
+        print(f"File does not exist: {file_path}")
         return 2
     try:
         data = json.loads(file_path.read_text(encoding='utf-8', errors='ignore'))

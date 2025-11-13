@@ -48,7 +48,7 @@ from typing import Iterable, List, Dict, Any, Set, Optional
 try:
     import httpx  # type: ignore
 except ImportError:
-    print("[ERROR] 未安装 httpx，请先运行: pip install httpx", file=sys.stderr)
+    print("[ERROR] httpx not installed, please run: pip install httpx", file=sys.stderr)
     sys.exit(1)
 
 URL_REGEX = re.compile(r"https?://[\w\-._~:/?#@!$&'()*+,;=%]+", re.IGNORECASE)
@@ -118,7 +118,7 @@ def collect_urls(paths: List[str], extra_urls: List[str], allow_duplicate: bool,
     for p in paths:
         path = Path(p)
         if not path.exists():
-            print(f"[WARN] 输入路径不存在: {p}")
+            print(f"[WARN] Input path does not exist: {p}")
             continue
         if path.is_dir():
             for sub in path.rglob('*'):
@@ -154,7 +154,7 @@ def collect_urls(paths: List[str], extra_urls: List[str], allow_duplicate: bool,
                     text = path.read_text(encoding='utf-8', errors='ignore')
                     extract_from_text(text)
             except Exception as e:
-                print(f"[WARN] 解析文件失败 {path}: {e}")
+                print(f"[WARN] Failed to parse file {path}: {e}")
 
     for u in extra_urls:
         add(u)
@@ -263,7 +263,7 @@ async def run_checks(urls: List[str], concurrency: int, timeout: float, retries:
             http2=http2,
             follow_redirects=True,
         )
-        # 兼容不同 httpx 版本: 尝试 proxies -> proxy -> 去掉
+        # Compatible with different httpx versions: try proxies -> proxy -> remove
         if proxy:
             for key in ("proxies", "proxy"):
                 try:
@@ -272,7 +272,7 @@ async def run_checks(urls: List[str], concurrency: int, timeout: float, retries:
                     return httpx.AsyncClient(**kw)
                 except TypeError:
                     continue
-        # 如果 http2 不被支持（极老版本），再次降级尝试
+        # If http2 is not supported (very old versions), fallback again
         try:
             return httpx.AsyncClient(**base_kwargs)
         except TypeError:
@@ -322,7 +322,7 @@ def write_reports(results: List[LinkResult], output_prefix: str):
         for r in results:
             writer.writerow(asdict(r))
 
-    print(f"[OK] 报告已生成:\n  JSON: {json_path}\n  CSV : {csv_path}")
+    print(f"[OK] Report generated:\n  JSON: {json_path}\n  CSV : {csv_path}")
 
 
     def write_partial(results: List[LinkResult], output_prefix: str):

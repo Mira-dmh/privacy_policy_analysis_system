@@ -7,12 +7,12 @@ from openai import OpenAI
 from dotenv import load_dotenv 
 
 # ===============================
-# 环境变量加载
+# Environment Variable Loading
 # ===============================
-# 自动加载 .env 文件中的 OPENAI_API_KEY
+# Auto-load OPENAI_API_KEY from .env file
 load_dotenv('.env')
 
-# 获取 API KEY
+# Get API KEY
 API_KEY = os.getenv("OPENAI_API_KEY")
 if not API_KEY:
     raise ValueError("❌ Missing OPENAI_API_KEY in environment or .env file. Please export OPENAI_API_KEY or add it to .env file.")
@@ -20,7 +20,7 @@ if not API_KEY:
 client = OpenAI(api_key=API_KEY)
 
 # ===============================
-# 配置
+# Configuration
 # ===============================
 QUESTIONS = [
     "1. Does the app declare the collection of data?",
@@ -33,14 +33,14 @@ QUESTIONS = [
 
 INDEX_FILE = "index_table.json"
 OUTPUT_DIR = "output"
-MODEL = "gpt-4o-mini"  # 可以改为 "gpt-5" 或 "gpt-4.1"
+MODEL = "gpt-4o-mini"  # Can change to "gpt-5" or "gpt-4.1"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ===============================
-# 工具函数
+# Utility Functions
 # ===============================
 def fetch_page_content(url, timeout=20):
-    """抓取网页内容（超时自动跳过）"""
+    """Fetch webpage content (automatically skip on timeout)"""
     try:
         resp = requests.get(url, timeout=timeout, headers={"User-Agent": "Mozilla/5.0"})
         resp.raise_for_status()
@@ -102,7 +102,7 @@ Answer:
         return None
 
 # ===============================
-# 主流程
+# Main Process
 # ===============================
 def main():
     with open(INDEX_FILE, "r", encoding="utf-8") as f:
