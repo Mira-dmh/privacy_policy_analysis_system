@@ -304,9 +304,9 @@ async def run_checks(urls: List[str], concurrency: int, timeout: float, retries:
 
 def write_reports(results: List[LinkResult], output_prefix: str):
     out_dir = Path(output_prefix).parent
-    print(f"[DEBUG] 准备创建输出目录: {out_dir}")
+    print(f"[DEBUG] Preparing to create output directory: {out_dir}")
     os.makedirs(out_dir, exist_ok=True)
-    print(f"[DEBUG] 输出目录存在: {out_dir.exists()} 绝对路径: {out_dir.resolve()}")
+    print(f"[DEBUG] Output directory exists: {out_dir.exists()} absolute path: {out_dir.resolve()}")
     json_path = f"{output_prefix}.json"
     csv_path = f"{output_prefix}.csv"
 
@@ -326,16 +326,16 @@ def write_reports(results: List[LinkResult], output_prefix: str):
 
 
     def write_partial(results: List[LinkResult], output_prefix: str):
-        """写入 partial 报告，避免长时间运行中断没有结果。"""
+        """Write partial report to avoid losing results if long-running process is interrupted."""
         out_dir = Path(output_prefix).parent
         out_dir.mkdir(parents=True, exist_ok=True)
         part_path = f"{output_prefix}_partial.json"
         try:
             with open(part_path, 'w', encoding='utf-8') as f:
                 json.dump([asdict(r) for r in results], f, ensure_ascii=False, indent=2)
-            print(f"[DEBUG] 已写入增量 partial: {part_path} (共 {len(results)} 条)")
+            print(f"[DEBUG] Written incremental partial: {part_path} (total {len(results)} entries)")
         except Exception as e:
-            print(f"[WARN] 写入 partial 失败: {e}")
+            print(f"[WARN] Failed to write partial: {e}")
 
 
 def print_summary(results: List[LinkResult]):
@@ -343,15 +343,15 @@ def print_summary(results: List[LinkResult]):
     counter = Counter(r.category for r in results)
     total = len(results)
     ok_count = sum(1 for r in results if r.ok)
-    print("\n===== 汇总 =====")
-    print(f"总数: {total}")
-    print(f"成功(ok): {ok_count}  ({ok_count/total:.1%})")
+    print("\n===== Summary =====")
+    print(f"Total: {total}")
+    print(f"Success(ok): {ok_count}  ({ok_count/total:.1%})")
     for k in sorted(counter.keys()):
         print(f"{k}: {counter[k]}")
-    # 列出失败示例
+    # List failure examples
     failures = [r for r in results if not r.ok][:10]
     if failures:
-        print("\n前 10 个失败示例:")
+        print("\nFirst 10 failure examples:")
         for r in failures:
             print(f" - {r.url} | status={r.status_code} | err={r.error}")
 
@@ -359,18 +359,18 @@ def print_summary(results: List[LinkResult]):
 def main():
     args = parse_args()
     if not args.inputs and not args.urls:
-        print("[ERROR] 请至少提供 --inputs 或 --url")
+        print("[ERROR] Please provide at least --inputs or --url")
         return 2
 
     urls = collect_urls(args.inputs, args.urls, args.allow_duplicate, args.extract_regex)
     if not urls:
-        print("[WARN] 未收集到 URL")
+        print("[WARN] No URLs collected")
         return 0
 
-    print(f"共收集到 {len(urls)} 条 URL (去重后)")
+    print(f"Collected {len(urls)} URLs (deduplicated)")
     if args.limit is not None and args.limit > 0:
         urls = urls[: args.limit]
-        print(f"[DEBUG] 已根据 --limit 截断为 {len(urls)} 条")
+        print(f"[DEBUG] Truncated to {len(urls)} entries based on --limit")
 
     output_prefix = args.output_prefix
     if not output_prefix:
@@ -378,7 +378,7 @@ def main():
         output_prefix = f"reports/link_check_report_{ts}"
 
     try:
-        print("[DEBUG] 开始执行异步检测 ...")
+        print("[DEBUG] Starting asynchronous detection ...")
         results = asyncio.run(
             run_checks(
                     urls=urls,
@@ -391,16 +391,16 @@ def main():
                     proxy=args.proxy,
                 )
         )
-        print(f"[DEBUG] 异步检测完成，结果数: {len(results)}")
+        print(f"[DEBUG] Async detection completed, result count: {len(results)}")
     except KeyboardInterrupt:
-        print("\n[WARN] 用户中断，已收集部分结果。")
+        print("\n[WARN] User interrupted, partial results collected.")
         results = []
     except Exception:
-        print("[ERROR] 运行过程中发生异常:\n" + traceback.format_exc())
+        print("[ERROR] Exception occurred during execution:\n" + traceback.format_exc())
         return 1
 
     write_reports(results, output_prefix)
-    print(f"[DEBUG] 结果数量: {len(results)} 即将打印汇总")
+    print(f"[DEBUG] Result count: {len(results)} about to print summary")
     print_summary(results)
     return 0
 

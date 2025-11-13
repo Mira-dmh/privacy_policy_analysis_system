@@ -143,12 +143,12 @@ def write_reports(results: List[RowResult], prefix: str):
 def summary(results: List[RowResult]):
     total = len(results)
     ok_cnt = sum(1 for r in results if r.ok)
-    print('\n===== 汇总 =====')
-    print(f"总数: {total}")
-    print(f"成功: {ok_cnt} ({ok_cnt/total:.1%})")
+    print('\n===== Summary =====')
+    print(f"Total: {total}")
+    print(f"Success: {ok_cnt} ({ok_cnt/total:.1%})")
     fail = [r for r in results if not r.ok][:15]
     if fail:
-        print("前 15 个失败:")
+        print("First 15 failures:")
         for r in fail:
             print(f" - id={r.id} url={r.url} err={r.error} status={r.status_code}")
 
@@ -162,7 +162,7 @@ def main():
     try:
         data = json.loads(file_path.read_text(encoding='utf-8', errors='ignore'))
         if not isinstance(data, list):
-            print('JSON 顶层不是数组')
+            print('JSON top-level is not an array')
             return 1
         rows: List[tuple[int, str]] = []
         for obj in data:
@@ -173,17 +173,17 @@ def main():
                     rows.append((rid, url))
         if args.limit:
             rows = rows[:args.limit]
-        print(f"收集到 {len(rows)} 条 (id,url)")
+        print(f"Collected {len(rows)} (id,url) entries")
     except Exception as e:
-        print(f"解析 JSON 失败: {e}")
+        print(f"Failed to parse JSON: {e}")
         return 1
 
     if not rows:
-        print('没有可检测的 (id,url)')
+        print('No (id,url) entries to detect')
         return 0
 
     results = asyncio.run(run(rows, args.concurrency, args.timeout, args.retries, args.http2))
-    # 按 id 排序
+    # Sort by id
     results.sort(key=lambda r: r.id)
     write_reports(results, args.output_prefix)
     summary(results)

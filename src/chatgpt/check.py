@@ -51,7 +51,7 @@ def fetch_page_content(url, timeout=20):
         return ""
 
 def ask_gpt(app_id, app_url, app_name, question, context, timeout=120):
-    """调用 GPT 生成 JSON 答案（错误或超时自动跳过）"""
+    """Call GPT to generate JSON answer (automatically skip on error or timeout)"""
     prompt = f"""
 You are a privacy policy expert. You are provided with {app_url}, which contains the privacy policy document for an app.
 Your task is to:
